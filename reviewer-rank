@@ -1,0 +1,32 @@
+#!/bin/sh
+
+REV=$1
+TIME_WINDOW=$2
+
+if [ -z "$REV" ]; then
+    REV=HEAD
+fi
+
+if [ -z "$TIME_WINDOW" ]; then
+    TIME_WINDOW=3.months
+fi
+
+echo
+echo Reviewer-rank for $REV calculated over last $TIME_WINDOW
+echo
+
+(for FILENAME in `git show --pretty="format:" --name-only $REV | grep  -v "^$"` ; do git log --since=$TIME_WINDOW --pretty=":::::$FILENAME:::::%an <%aE>" --name-only $FILENAME ; done )\
+| tee /tmp/debug0.txt\
+| grep ":::::" \
+| tee /tmp/debug1.txt\
+| cut --d=":" --fields=11\
+| tee /tmp/debug2.txt\
+| sort \
+| tee /tmp/debug3.txt\
+| uniq -c \
+| tee /tmp/debug4.txt\
+| sort -n -r\
+| tee /tmp/debug5.txt
+
+echo
+
